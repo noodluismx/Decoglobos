@@ -6,6 +6,8 @@
     <title>Document Filler</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: "Inter", sans-serif;
@@ -48,7 +50,7 @@
         input[type="text"],
         input[type="date"],
         input[type="time"],
-        input[type="number"], /* Added for cost and advance */
+        input[type="number"],
         textarea,
         select {
             border: 1px solid #d1d5db;
@@ -61,7 +63,7 @@
         input[type="text"]:focus,
         input[type="date"]:focus,
         input[type="time"]:focus,
-        input[type="number"]:focus, /* Added for cost and advance */
+        input[type="number"]:focus,
         textarea:focus,
         select:focus {
             outline: none;
@@ -85,6 +87,17 @@
         button:active {
             transform: translateY(0);
         }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-group button {
+            flex-grow: 1;
+            min-width: 150px; /* Ensure buttons are not too small */
+        }
         .document-field {
             padding: 8px 0;
             border-bottom: 1px dashed #e5e7eb;
@@ -106,9 +119,6 @@
         <div class="form-section">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Fill Your Document</h2>
             <form id="documentForm" class="space-y-6">
-                <!-- Document Title field removed as per request -->
-                <!-- Author Name field removed as per request -->
-
                 <div>
                     <label for="docDate" class="block text-sm font-medium text-gray-700 mb-1">Date:</label>
                     <input type="date" id="docDate" name="docDate" class="mt-1 block w-full rounded-md">
@@ -221,7 +231,7 @@ accidentes. Si se requiere hacer un ajuste, se debe contactar al proveedor.
 
 SÉPTIMA. FACTORES EXTERNOS
 
-“El PROVEVEEDOR” no se hace responsable por daños ocasionados por clima (lluvia,
+“El PROVEEDOR” no se hace responsable por daños ocasionados por clima (lluvia,
 viento, sol fuerte), fallas de electricidad, problemas del lugar del evento o
 situaciones ajenas a su control.
 
@@ -280,13 +290,27 @@ Firma: __________________________</textarea>
             <div id="documentOutput" class="space-y-4 text-gray-900">
                 <p class="text-gray-500 italic">Fill the form and click "Generate Document" to see the preview here.</p>
             </div>
+            <div class="button-group">
+                <button id="downloadHtmlBtn">Descargar Documento (HTML)</button>
+                <button id="downloadPdfBtn">Descargar Documento (PDF)</button>
+                <button id="exportCsvBtn">Exportar Datos (CSV)</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Ensure jsPDF is loaded
+        const { jsPDF } = window.jspdf;
+
         document.addEventListener('DOMContentLoaded', () => {
             const documentForm = document.getElementById('documentForm');
             const documentOutput = document.getElementById('documentOutput');
+            const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+            let currentGeneratedDocTitle = ''; // To store the generated title for downloads
+            let currentFinalDocTextContent = ''; // To store the text content after replacements for PDF
 
             // Function to format the date for display (e.g., "July 1, 2025")
             const formatDateForDisplay = (dateString) => {
@@ -327,9 +351,9 @@ Firma: __________________________</textarea>
                 const clientName = document.getElementById('clientName').value.trim();
                 const phoneNumber = document.getElementById('phoneNumber').value.trim();
                 const address = document.getElementById('address').value.trim();
-                const cost = document.getElementById('cost').value.trim(); // New field
-                const advance = document.getElementById('advance').value.trim(); // New field
-                const daysNotice = document.getElementById('daysNotice').value.trim(); // New field
+                const cost = document.getElementById('cost').value.trim();
+                const advance = document.getElementById('advance').value.trim();
+                const daysNotice = document.getElementById('daysNotice').value.trim();
                 const docType = document.getElementById('docType').value.trim();
                 let docContent = document.getElementById('docContent').value; // Get the pre-filled content
 
@@ -337,34 +361,40 @@ Firma: __________________________</textarea>
                 documentOutput.innerHTML = '';
 
                 // Generate the document title based on date and client name
-                let generatedDocTitle = '';
+                currentGeneratedDocTitle = ''; // Reset for new generation
                 if (docDate && clientName) {
-                    generatedDocTitle = `${formatDateForTitle(docDate)}-${clientName}`;
+                    currentGeneratedDocTitle = `${formatDateForTitle(docDate)}-${clientName}`;
                 } else if (docDate) {
-                    generatedDocTitle = `${formatDateForTitle(docDate)}-[Client Name Missing]`;
+                    currentGeneratedDocTitle = `${formatDateForTitle(docDate)}-[Client Name Missing]`;
                 } else if (clientName) {
-                    generatedDocTitle = `[Date Missing]-${clientName}`;
+                    currentGeneratedDocTitle = `[Date Missing]-${clientName}`;
                 } else {
-                    generatedDocTitle = 'Untitled Document';
+                    currentGeneratedDocTitle = 'Untitled Document';
                 }
 
-                // Check if any content is provided (excluding authorName now)
+                // Check if any content is provided
                 if (!docDate && !docTime && !clientName && !phoneNumber && !address && !cost && !advance && !daysNotice && !docType && !docContent) {
                     documentOutput.innerHTML = '<p class="text-gray-500 italic">No content provided. Please fill the form.</p>';
                     return;
                 }
 
                 // --- Placeholder Replacement Logic ---
-                docContent = docContent.replace(/\{\{DATE\}\}/g, formatDateForDisplay(docDate) || '[Fecha]');
-                docContent = docContent.replace(/\{\{TIME\}\}/g, docTime || '[Hora]');
-                docContent = docContent.replace(/\{\{CLIENT\}\}/g, clientName || '[Nombre del Cliente]');
-                docContent = docContent.replace(/\{\{PHONE\}\}/g, phoneNumber || '[Número de Teléfono]');
-                docContent = docContent.replace(/\{\{ADDRESS\}\}/g, address.replace(/\n/g, '<br>') || '[Dirección]');
-                docContent = docContent.replace(/\{\{TYPE\}\}/g, docType || '[Tipo de Documento]');
-                docContent = docContent.replace(/\{\{COST\}\}/g, cost || '[Costo Total]');
-                docContent = docContent.replace(/\{\{ADVANCE\}\}/g, advance || '[Anticipo]');
-                docContent = docContent.replace(/\{\{DAYS_NOTICE\}\}/g, daysNotice || '[Días de Anticipación]');
-                docContent = docContent.replace(/\{\{TODAYDATE\}\}/g, getTodayDateFormatted());
+                // Store the text content after replacements for PDF generation
+                currentFinalDocTextContent = docContent; // Start with raw content
+
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{DATE\}\}/g, formatDateForDisplay(docDate) || '[Fecha]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{TIME\}\}/g, docTime || '[Hora]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{CLIENT\}\}/g, clientName || '[Nombre del Cliente]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{PHONE\}\}/g, phoneNumber || '[Número de Teléfono]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{ADDRESS\}\}/g, address || '[Dirección]'); // Keep newlines as \n for PDF
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{TYPE\}\}/g, docType || '[Tipo de Documento]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{COST\}\}/g, cost || '[Costo Total]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{ADVANCE\}\}/g, advance || '[Anticipo]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{DAYS_NOTICE\}\}/g, daysNotice || '[Días de Anticipación]');
+                currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{TODAYDATE\}\}/g, getTodayDateFormatted());
+
+                // For HTML display, convert newlines to <br>
+                const formattedHtmlContent = currentFinalDocTextContent.replace(/\n/g, '<br>');
                 // --- End Placeholder Replacement Logic ---
 
 
@@ -372,7 +402,7 @@ Firma: __________________________</textarea>
                 let outputHtml = '';
 
                 // Always display the generated document title at the top
-                outputHtml += `<div class="document-field"><h3 class="text-xl font-semibold text-gray-800">${generatedDocTitle}</h3></div>`;
+                outputHtml += `<div class="document-field"><h3 class="text-xl font-semibold text-gray-800">${currentGeneratedDocTitle}</h3></div>`;
 
                 if (docDate) {
                     outputHtml += `<div class="document-field"><strong>Fecha:</strong> <span>${formatDateForDisplay(docDate)}</span></div>`;
@@ -387,8 +417,8 @@ Firma: __________________________</textarea>
                     outputHtml += `<div class="document-field"><strong>Teléfono:</strong> <span>${phoneNumber}</span></div>`;
                 }
                 if (address) {
-                    const formattedAddress = address.replace(/\n/g, '<br>');
-                    outputHtml += `<div class="document-field"><strong>Dirección:</strong> <span>${formattedAddress}</span></div>`;
+                    const displayAddress = address.replace(/\n/g, '<br>'); // Format for HTML display
+                    outputHtml += `<div class="document-field"><strong>Dirección:</strong> <span>${displayAddress}</span></div>`;
                 }
                 if (cost) {
                     outputHtml += `<div class="document-field"><strong>Costo Total:</strong> <span>$${cost}</span></div>`;
@@ -402,12 +432,137 @@ Firma: __________________________</textarea>
                 if (docType) {
                     outputHtml += `<div class="document-field"><strong>Tipo:</strong> <span>${docType}</span></div>`;
                 }
-                if (docContent) {
-                    // The docContent is already formatted with <br> for newlines during placeholder replacement
-                    outputHtml += `<div class="document-field mt-4"><p>${docContent}</p></div>`;
+                if (formattedHtmlContent) {
+                    // The formattedHtmlContent is already prepared for HTML display
+                    outputHtml += `<div class="document-field mt-4"><p>${formattedHtmlContent}</p></div>`;
                 }
 
                 documentOutput.innerHTML = outputHtml;
+            });
+
+            // --- Download Functions ---
+
+            // Function to trigger file download
+            const downloadFile = (filename, content, mimeType) => {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a); // Append to body to make it clickable in some browsers
+                a.click();
+                document.body.removeChild(a); // Clean up
+                URL.revokeObjectURL(url); // Release the object URL
+            };
+
+            // Download as HTML document
+            downloadHtmlBtn.addEventListener('click', () => {
+                if (documentOutput.innerHTML.includes('No content provided')) {
+                    console.error('No document generated yet.');
+                    return;
+                }
+                // Get the entire content of the preview section, including the generated title and fields
+                const contentToDownload = `
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>${currentGeneratedDocTitle || 'Contrato'}</title>
+                        <style>
+                            body { font-family: 'Inter', sans-serif; margin: 40px; line-height: 1.6; color: #333; }
+                            h1, h2, h3 { color: #222; margin-bottom: 15px; }
+                            strong { color: #555; }
+                            p { margin-bottom: 10px; }
+                            .section-title { font-size: 1.2em; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+                            .contract-text { white-space: pre-wrap; word-wrap: break-word; } /* Preserve formatting for contract text */
+                        </style>
+                    </head>
+                    <body>
+                        ${documentOutput.innerHTML}
+                    </body>
+                    </html>
+                `;
+                downloadFile(`${currentGeneratedDocTitle || 'contrato'}.html`, contentToDownload, 'text/html');
+            });
+
+            // Download as PDF document
+            downloadPdfBtn.addEventListener('click', () => {
+                if (documentOutput.innerHTML.includes('No content provided')) {
+                    console.error('No document generated yet.');
+                    return;
+                }
+
+                const doc = new jsPDF();
+                const margin = 10;
+                let y = margin;
+                const lineHeight = 7; // Adjust line height as needed
+                const maxWidth = doc.internal.pageSize.width - 2 * margin;
+
+                // Add generated title
+                doc.setFontSize(16);
+                doc.text(currentGeneratedDocTitle, margin, y);
+                y += lineHeight * 2;
+
+                doc.setFontSize(10);
+                // Add fields from the preview section (excluding the main content for now)
+                // We'll parse the HTML output for these structured fields
+                const previewFields = documentOutput.querySelectorAll('.document-field');
+                previewFields.forEach(field => {
+                    // Skip the main content paragraph, which will be added separately
+                    if (field.querySelector('p') && field.querySelector('p').innerHTML === currentFinalDocTextContent.replace(/\n/g, '<br>')) {
+                        return;
+                    }
+
+                    const strongText = field.querySelector('strong') ? field.querySelector('strong').textContent : '';
+                    const spanText = field.querySelector('span') ? field.querySelector('span').textContent : '';
+                    const h3Text = field.querySelector('h3') ? field.querySelector('h3').textContent : '';
+
+                    let line = '';
+                    if (h3Text) {
+                        line = h3Text;
+                    } else if (strongText && spanText) {
+                        line = `${strongText} ${spanText}`;
+                    } else if (spanText) {
+                        line = spanText;
+                    }
+
+                    if (line) {
+                        const splitText = doc.splitTextToSize(line, maxWidth);
+                        doc.text(splitText, margin, y);
+                        y += splitText.length * lineHeight;
+                    }
+                });
+
+                y += lineHeight; // Add some space before the main content
+
+                // Add the main contract content
+                doc.setFontSize(10);
+                // Use currentFinalDocTextContent which has \n for newlines
+                const splitContent = doc.splitTextToSize(currentFinalDocTextContent, maxWidth);
+                doc.text(splitContent, margin, y);
+                y += splitContent.length * lineHeight;
+
+                doc.save(`${currentGeneratedDocTitle || 'contrato'}.pdf`);
+            });
+
+
+            // Export data as CSV
+            exportCsvBtn.addEventListener('click', () => {
+                const docDate = document.getElementById('docDate').value.trim();
+                const docTime = document.getElementById('docTime').value.trim();
+                const clientName = document.getElementById('clientName').value.trim();
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                const address = document.getElementById('address').value.trim().replace(/\n/g, ' '); // Remove newlines for CSV
+                const cost = document.getElementById('cost').value.trim();
+                const advance = document.getElementById('advance').value.trim();
+                const daysNotice = document.getElementById('daysNotice').value.trim();
+                const docType = document.getElementById('docType').value.trim();
+
+                const headers = "Fecha,Hora,Cliente,Telefono,Direccion,Costo Total,Anticipo,Dias de Anticipacion,Tipo de Documento\n";
+                const data = `${docDate},${docTime},"${clientName}","${phoneNumber}","${address}",${cost},${advance},${daysNotice},"${docType}"\n`;
+
+                const csvContent = headers + data;
+                downloadFile(`${currentGeneratedDocTitle || 'datos_contrato'}.csv`, csvContent, 'text/csv');
             });
 
             // Populate date field with current date on load
