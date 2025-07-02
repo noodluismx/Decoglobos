@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Filler</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better scrolling on smaller screens */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        @media (min-width: 1024px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+        .form-section, .document-preview-section {
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            flex: 1;
+        }
+        .form-section {
+            min-width: 300px;
+        }
+        .document-preview-section {
+            min-height: 400px; /* Ensure preview area has some initial height */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        textarea,
+        select {
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6; /* Blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        button {
+            background-color: #2563eb; /* Blue-600 */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            border: none;
+        }
+        button:hover {
+            background-color: #1d4ed8; /* Blue-700 */
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .document-field {
+            padding: 8px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        .document-field:last-child {
+            border-bottom: none;
+        }
+        .document-field strong {
+            color: #4b5563; /* Gray-700 */
+        }
+        .document-field span {
+            color: #1f2937; /* Gray-900 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Form Section -->
+        <div class="form-section">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Fill Your Document</h2>
+            <form id="documentForm" class="space-y-6">
+                <!-- Document Title field removed as per request -->
+                <!-- Author Name field removed as per request -->
+
+                <div>
+                    <label for="docDate" class="block text-sm font-medium text-gray-700 mb-1">Date:</label>
+                    <input type="date" id="docDate" name="docDate" class="mt-1 block w-full rounded-md">
+                </div>
+
+                <div>
+                    <label for="docTime" class="block text-sm font-medium text-gray-700 mb-1">Time:</label>
+                    <input type="time" id="docTime" name="docTime" class="mt-1 block w-full rounded-md">
+                </div>
+
+                <div>
+                    <label for="clientName" class="block text-sm font-medium text-gray-700 mb-1">Client:</label>
+                    <input type="text" id="clientName" name="clientName" class="mt-1 block w-full rounded-md" placeholder="Client Name">
+                </div>
+
+                <div>
+                    <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-1">Phone Number:</label>
+                    <input type="text" id="phoneNumber" name="phoneNumber" class="mt-1 block w-full rounded-md" placeholder="e.g., (123) 456-7890">
+                </div>
+
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address:</label>
+                    <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md" placeholder="Client Address"></textarea>
+                </div>
+
+                <div>
+                    <label for="docType" class="block text-sm font-medium text-gray-700 mb-1">Document Type:</label>
+                    <select id="docType" name="docType" class="mt-1 block w-full rounded-md">
+                        <option value="">Select Type</option>
+                        <option value="Document">Document</option>
+                        <option value="PDF">PDF</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="docContent" class="block text-sm font-medium text-gray-700 mb-1">Document Content:</label>
+                    <textarea id="docContent" name="docContent" rows="8" class="mt-1 block w-full rounded-md" placeholder="Write the main content of your document here..."></textarea>
+                </div>
+
+                <button type="submit" class="w-full">Generate Document</button>
+            </form>
+        </div>
+
+        <!-- Document Preview Section -->
+        <div class="document-preview-section">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Document Preview</h2>
+            <div id="documentOutput" class="space-y-4 text-gray-900">
+                <p class="text-gray-500 italic">Fill the form and click "Generate Document" to see the preview here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const documentForm = document.getElementById('documentForm');
+            const documentOutput = document.getElementById('documentOutput');
+
+            // Function to format the date for display (e.g., "July 1, 2025")
+            const formatDateForDisplay = (dateString) => {
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                try {
+                    return new Date(dateString).toLocaleDateString(undefined, options);
+                } catch (e) {
+                    return dateString; // Return original if invalid date
+                }
+            };
+
+            // Function to format the date for the document title (e.g., "Aug01")
+            const formatDateForTitle = (dateString) => {
+                try {
+                    const date = new Date(dateString);
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const month = monthNames[date.getMonth()];
+                    const day = date.getDate().toString().padStart(2, '0');
+                    return `${month}${day}`;
+                } catch (e) {
+                    return ''; // Return empty string if invalid date
+                }
+            };
+
+            documentForm.addEventListener('submit', (event) => {
+                event.preventDefault(); // Prevent default form submission
+
+                // Get form values
+                const docDate = document.getElementById('docDate').value.trim();
+                const docTime = document.getElementById('docTime').value.trim();
+                const clientName = document.getElementById('clientName').value.trim();
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const docType = document.getElementById('docType').value.trim();
+                const docContent = document.getElementById('docContent').value.trim();
+
+                // Clear previous output
+                documentOutput.innerHTML = '';
+
+                // Generate the document title based on date and client name
+                let generatedDocTitle = '';
+                if (docDate && clientName) {
+                    generatedDocTitle = `${formatDateForTitle(docDate)}-${clientName}`;
+                } else if (docDate) {
+                    generatedDocTitle = `${formatDateForTitle(docDate)}-[Client Name Missing]`;
+                } else if (clientName) {
+                    generatedDocTitle = `[Date Missing]-${clientName}`;
+                } else {
+                    generatedDocTitle = 'Untitled Document';
+                }
+
+
+                // Check if any content is provided
+                if (!docDate && !docTime && !clientName && !phoneNumber && !address && !docType && !docContent) {
+                    documentOutput.innerHTML = '<p class="text-gray-500 italic">No content provided. Please fill the form.</p>';
+                    return;
+                }
+
+                // Construct the document preview HTML
+                let outputHtml = '';
+
+                // Always display the generated document title at the top
+                outputHtml += `<div class="document-field"><h3 class="text-xl font-semibold text-gray-800">${generatedDocTitle}</h3></div>`;
+
+                if (docDate) {
+                    outputHtml += `<div class="document-field"><strong>Date:</strong> <span>${formatDateForDisplay(docDate)}</span></div>`;
+                }
+                if (docTime) {
+                    outputHtml += `<div class="document-field"><strong>Time:</strong> <span>${docTime}</span></div>`;
+                }
+                if (clientName) {
+                    outputHtml += `<div class="document-field"><strong>Client:</strong> <span>${clientName}</span></div>`;
+                }
+                if (phoneNumber) {
+                    outputHtml += `<div class="document-field"><strong>Phone:</strong> <span>${phoneNumber}</span></div>`;
+                }
+                if (address) {
+                    const formattedAddress = address.replace(/\n/g, '<br>');
+                    outputHtml += `<div class="document-field"><strong>Address:</strong> <span>${formattedAddress}</span></div>`;
+                }
+                if (docType) {
+                    outputHtml += `<div class="document-field"><strong>Type:</strong> <span>${docType}</span></div>`;
+                }
+                if (docContent) {
+                    const formattedContent = docContent.replace(/\n/g, '<br>');
+                    outputHtml += `<div class="document-field mt-4"><p>${formattedContent}</p></div>`;
+                }
+
+                documentOutput.innerHTML = outputHtml;
+            });
+
+            // Populate date field with current date on load
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            document.getElementById('docDate').value = `${year}-${month}-${day}`;
+        });
+    </script>
+</body>
+</html>
