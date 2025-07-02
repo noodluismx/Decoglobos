@@ -285,7 +285,6 @@ Firma: __________________________</textarea>
                 <p class="text-gray-500 italic">Fill the form and click "Generate Document" to see the preview here.</p>
             </div>
             <div class="button-group">
-                <button id="downloadHtmlBtn">Descargar Documento (HTML)</button>
                 <button id="downloadPdfBtn">Descargar Documento (PDF)</button>
                 <button id="exportCsvBtn">Exportar Datos (CSV)</button>
                 <button id="createCalendarEventBtn">Crear Evento en Calendario</button>
@@ -301,7 +300,7 @@ Firma: __________________________</textarea>
             const documentForm = document.getElementById('documentForm');
             const documentOutput = document.getElementById('documentOutput');
             const docTimeSelect = document.getElementById('docTime'); // Reference to the new select element
-            const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
+            // const downloadHtmlBtn = document.getElementById('downloadHtmlBtn'); // Removed HTML button reference
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             const exportCsvBtn = document.getElementById('exportCsvBtn');
             const createCalendarEventBtn = document.getElementById('createCalendarEventBtn');
@@ -370,7 +369,6 @@ Firma: __________________________</textarea>
                 const cost = document.getElementById('cost').value.trim();
                 const advance = document.getElementById('advance').value.trim();
                 const daysNotice = document.getElementById('daysNotice').value.trim();
-                // docType is removed
                 let docContent = document.getElementById('docContent').value; // Get the pre-filled content
 
                 // Clear previous output
@@ -389,7 +387,7 @@ Firma: __________________________</textarea>
                 }
 
                 // Check if any content is provided
-                if (!docDate && !docTime && !clientName && !phoneNumber && !address && !cost && !advance && !daysNotice && !docContent) { // Removed docType
+                if (!docDate && !docTime && !clientName && !phoneNumber && !address && !cost && !advance && !daysNotice && !docContent) {
                     documentOutput.innerHTML = '<p class="text-gray-500 italic">No content provided. Please fill the form.</p>';
                     return;
                 }
@@ -403,7 +401,6 @@ Firma: __________________________</textarea>
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{CLIENT\}\}/g, clientName || '[Nombre del Cliente]');
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{PHONE\}\}/g, phoneNumber || '[Número de Teléfono]');
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{ADDRESS\}\}/g, address || '[Dirección]'); // Keep newlines as \n for PDF
-                // Removed {{TYPE}} placeholder replacement
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{COST\}\}/g, cost || '[Costo Total]');
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{ADVANCE\}\}/g, advance || '[Anticipo]');
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{DAYS_NOTICE\}\}/g, daysNotice || '[Días de Anticipación]');
@@ -445,7 +442,6 @@ Firma: __________________________</textarea>
                 if (daysNotice) {
                     outputHtml += `<div class="document-field"><strong>Días de Anticipación para Cambios:</strong> <span>${daysNotice}</span></div>`;
                 }
-                // Removed docType display
                 if (formattedHtmlContent) {
                     // The formattedHtmlContent is already prepared for HTML display
                     outputHtml += `<div class="document-field mt-4"><p>${formattedHtmlContent}</p></div>`;
@@ -469,13 +465,13 @@ Firma: __________________________</textarea>
                 URL.revokeObjectURL(url); // Release the object URL
             };
 
-            // Download as HTML document
+            // Removed Download as HTML document button and its event listener
+            /*
             downloadHtmlBtn.addEventListener('click', () => {
                 if (documentOutput.innerHTML.includes('No content provided')) {
                     console.error('No document generated yet.');
                     return;
                 }
-                // Get the entire content of the preview section, including the generated title and fields
                 const contentToDownload = `
                     <!DOCTYPE html>
                     <html lang="es">
@@ -488,7 +484,7 @@ Firma: __________________________</textarea>
                             strong { color: #555; }
                             p { margin-bottom: 10px; }
                             .section-title { font-size: 1.2em; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-                            .contract-text { white-space: pre-wrap; word-wrap: break-word; } /* Preserve formatting for contract text */
+                            .contract-text { white-space: pre-wrap; word-wrap: break-word; }
                         </style>
                     </head>
                     <body>
@@ -498,6 +494,7 @@ Firma: __________________________</textarea>
                 `;
                 downloadFile(`${currentGeneratedDocTitle || 'contrato'}.html`, contentToDownload, 'text/html');
             });
+            */
 
             // Download as PDF document
             downloadPdfBtn.addEventListener('click', () => {
@@ -570,10 +567,9 @@ Firma: __________________________</textarea>
                 const cost = document.getElementById('cost').value.trim();
                 const advance = document.getElementById('advance').value.trim();
                 const daysNotice = document.getElementById('daysNotice').value.trim();
-                // docType is removed
 
-                const headers = "Fecha,Hora,Cliente,Telefono,Direccion,Costo Total,Anticipo,Dias de Anticipacion\n"; // Removed Tipo de Documento
-                const data = `${docDate},${docTime},"${clientName}","${phoneNumber}","${address}",${cost},${advance},${daysNotice}\n`; // Removed docType
+                const headers = "Fecha,Hora,Cliente,Telefono,Direccion,Costo Total,Anticipo,Dias de Anticipacion\n";
+                const data = `${docDate},${docTime},"${clientName}","${phoneNumber}","${address}",${cost},${advance},${daysNotice}\n`;
 
                 const csvContent = headers + data;
                 downloadFile(`${currentGeneratedDocTitle || 'datos_contrato'}.csv`, csvContent, 'text/csv');
@@ -589,7 +585,6 @@ Firma: __________________________</textarea>
                 const advance = document.getElementById('advance').value.trim();
 
                 if (!docDate || !docTime || !clientName) {
-                    // Using alert() as per previous instruction for simple user notification
                     alert('Por favor, complete la Fecha, Hora y Cliente para crear un evento de calendario.');
                     return;
                 }
