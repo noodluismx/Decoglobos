@@ -294,6 +294,7 @@ Firma: __________________________</textarea>
                 <button id="downloadHtmlBtn">Descargar Documento (HTML)</button>
                 <button id="downloadPdfBtn">Descargar Documento (PDF)</button>
                 <button id="exportCsvBtn">Exportar Datos (CSV)</button>
+                <button id="createCalendarEventBtn">Crear Evento en Calendario</button>
             </div>
         </div>
     </div>
@@ -308,6 +309,7 @@ Firma: __________________________</textarea>
             const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const createCalendarEventBtn = document.getElementById('createCalendarEventBtn'); // New button
 
             let currentGeneratedDocTitle = ''; // To store the generated title for downloads
             let currentFinalDocTextContent = ''; // To store the text content after replacements for PDF
@@ -563,6 +565,48 @@ Firma: __________________________</textarea>
 
                 const csvContent = headers + data;
                 downloadFile(`${currentGeneratedDocTitle || 'datos_contrato'}.csv`, csvContent, 'text/csv');
+            });
+
+            // Create Google Calendar Event
+            createCalendarEventBtn.addEventListener('click', () => {
+                const docDate = document.getElementById('docDate').value.trim();
+                const docTime = document.getElementById('docTime').value.trim();
+                const clientName = document.getElementById('clientName').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const cost = document.getElementById('cost').value.trim();
+                const advance = document.getElementById('advance').value.trim();
+
+                if (!docDate || !docTime || !clientName) {
+                    alert('Por favor, complete la Fecha, Hora y Cliente para crear un evento de calendario.');
+                    return;
+                }
+
+                // Format date and time for Google Calendar (YYYYMMDDTHHMMSSZ)
+                // Assuming local time, adjust if UTC is needed
+                const eventDate = new Date(`${docDate}T${docTime}`);
+                const year = eventDate.getFullYear();
+                const month = (eventDate.getMonth() + 1).toString().padStart(2, '0');
+                const day = eventDate.getDate().toString().padStart(2, '0');
+                const hours = eventDate.getHours().toString().padStart(2, '0');
+                const minutes = eventDate.getMinutes().toString().padStart(2, '0');
+
+                // For simplicity, let's make it a 1-hour event
+                const endHours = (eventDate.getHours() + 1).toString().padStart(2, '0');
+                const endMinutes = eventDate.getMinutes().toString().padStart(2, '0');
+
+                const startDateTime = `${year}${month}${day}T${hours}${minutes}00`;
+                const endDateTime = `${year}${month}${day}T${endHours}${endMinutes}00`;
+
+                const eventTitle = `Evento de Decoración: ${clientName}`;
+                let eventDetails = `Contrato de servicio para ${clientName}.\n`;
+                eventDetails += `Costo Total: $${cost || 'N/A'}\n`;
+                eventDetails += `Anticipo: $${advance || 'N/A'}\n`;
+                eventDetails += `Teléfono: ${document.getElementById('phoneNumber').value.trim() || 'N/A'}\n`;
+                eventDetails += `Dirección: ${address || 'N/A'}`;
+
+                const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${startDateTime}/${endDateTime}&details=${encodeURIComponent(eventDetails)}&location=${encodeURIComponent(address)}&sf=true&output=xml`;
+
+                window.open(googleCalendarUrl, '_blank');
             });
 
             // Populate date field with current date on load
