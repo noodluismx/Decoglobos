@@ -303,7 +303,6 @@ Firma: __________________________</textarea>
         document.addEventListener('DOMContentLoaded', () => {
             const documentForm = document.getElementById('documentForm');
             const documentOutput = document.getElementById('documentOutput');
-            // Referencias a los nuevos select de hora y minuto
             const docHourSelect = document.getElementById('docHour');
             const docMinuteSelect = document.getElementById('docMinute');
 
@@ -342,25 +341,23 @@ Firma: __________________________</textarea>
             const formatDateForDisplay = (dateString) => {
                 const options = { year: 'numeric', month: 'long', day: 'numeric' };
                 try {
-                    // Corrección: Añade 'T00:00:00' para tratar la cadena de fecha como hora local
                     const date = new Date(`${dateString}T00:00:00`);
                     return date.toLocaleDateString('es-ES', options);
                 } catch (e) {
-                    return dateString; // Devuelve el original si la fecha es inválida
+                    return dateString;
                 }
             };
 
             // Función para formatear la fecha para el título del documento (ej. "Jul02")
             const formatDateForTitle = (dateString) => {
                 try {
-                    // Corrección: Añade 'T00:00:00' para tratar la cadena de fecha como hora local
                     const date = new Date(`${dateString}T00:00:00`);
-                    const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]; // Nombres de meses en español para el título
+                    const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
                     const month = monthNames[date.getMonth()];
                     const day = date.getDate().toString().padStart(2, '0');
                     return `${month}${day}`;
                 } catch (e) {
-                    return ''; // Devuelve una cadena vacía si la fecha es inválida
+                    return '';
                 }
             };
 
@@ -368,18 +365,15 @@ Firma: __________________________</textarea>
             const getTodayDateFormatted = () => {
                 const today = new Date();
                 const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                return today.toLocaleDateString('es-ES', options); // Formato para español
+                return today.toLocaleDateString('es-ES', options);
             };
 
             documentForm.addEventListener('submit', (event) => {
-                event.preventDefault(); // Previene el envío predeterminado del formulario
+                event.preventDefault();
 
-                // Obtiene los valores del formulario
                 const docDate = document.getElementById('docDate').value.trim();
-                // Obtiene los valores de los nuevos select de hora y minuto
                 const selectedHour = docHourSelect.value.trim();
                 const selectedMinute = docMinuteSelect.value.trim();
-                // Combina hora y minuto para formar docTime en formato HH:MM
                 const docTime = selectedHour && selectedMinute ? `${selectedHour}:${selectedMinute}` : '';
 
                 const clientName = document.getElementById('clientName').value.trim();
@@ -390,10 +384,8 @@ Firma: __________________________</textarea>
                 const daysNotice = document.getElementById('daysNotice').value.trim();
                 let docContent = document.getElementById('docContent').value;
 
-                // Limpia la salida anterior
                 documentOutput.innerHTML = '';
 
-                // Genera el título del documento basado en la fecha y el nombre del cliente
                 currentGeneratedDocTitle = '';
                 if (docDate && clientName) {
                     currentGeneratedDocTitle = `${formatDateForTitle(docDate)}-${clientName}`;
@@ -405,13 +397,11 @@ Firma: __________________________</textarea>
                     currentGeneratedDocTitle = 'Documento sin Título';
                 }
 
-                // Verifica si se ha proporcionado algún contenido
                 if (!docDate && !docTime && !clientName && !phoneNumber && !address && !cost && !advance && !daysNotice && !docContent) {
                     documentOutput.innerHTML = '<p class="text-gray-500 italic">No se ha proporcionado contenido. Por favor, rellena el formulario.</p>';
                     return;
                 }
 
-                // --- Lógica de Reemplazo de Marcadores de Posición ---
                 currentFinalDocTextContent = docContent;
 
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{DATE\}\}/g, formatDateForDisplay(docDate) || '[Fecha]');
@@ -424,15 +414,10 @@ Firma: __________________________</textarea>
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{DAYS_NOTICE\}\}/g, daysNotice || '[Días de Anticipación]');
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{TODAYDATE\}\}/g, getTodayDateFormatted());
 
-                // Para la visualización HTML, convierte los saltos de línea a <br>
                 const formattedHtmlContent = currentFinalDocTextContent.replace(/\n/g, '<br>');
-                // --- Fin de la Lógica de Reemplazo de Marcadores de Posición ---
 
-                // Construye el HTML de la vista previa del documento
                 let outputHtml = '';
-
                 outputHtml += `<div class="document-field"><h3 class="text-xl font-semibold text-gray-800">${currentGeneratedDocTitle}</h3></div>`;
-
                 if (docDate) {
                     outputHtml += `<div class="document-field"><strong>Fecha:</strong> <span>${formatDateForDisplay(docDate)}</span></div>`;
                 }
@@ -465,9 +450,6 @@ Firma: __________________________</textarea>
                 documentOutput.innerHTML = outputHtml;
             });
 
-            // --- Funciones de Descarga ---
-
-            // Función para activar la descarga de archivos
             const downloadFile = (filename, content, mimeType) => {
                 const blob = new Blob([content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
@@ -490,49 +472,25 @@ Firma: __________________________</textarea>
                 const doc = new jsPDF();
                 const margin = 10;
                 let y = margin;
-                const lineHeight = 7;
+                const lineHeight = 7; // Altura de línea para el texto
                 const maxWidth = doc.internal.pageSize.width - 2 * margin;
+                const pageHeight = doc.internal.pageSize.height;
 
-                // Añadir título generado
-                doc.setFontSize(16);
-                doc.text(currentGeneratedDocTitle, margin, y);
-                y += lineHeight * 2;
+                doc.setFontSize(10); // Establece el tamaño de fuente para el contenido
 
-                doc.setFontSize(10);
-                const previewFields = documentOutput.querySelectorAll('.document-field');
-                previewFields.forEach(field => {
-                    // Omite el párrafo de contenido principal, que se añadirá por separado
-                    if (field.querySelector('p') && field.querySelector('p').innerHTML === currentFinalDocTextContent.replace(/\n/g, '<br>')) {
-                        return;
-                    }
-
-                    const strongText = field.querySelector('strong') ? field.querySelector('strong').textContent : '';
-                    const spanText = field.querySelector('span') ? field.querySelector('span').textContent : '';
-                    const h3Text = field.querySelector('h3') ? field.querySelector('h3').textContent : '';
-
-                    let line = '';
-                    if (h3Text) {
-                        line = h3Text;
-                    } else if (strongText && spanText) {
-                        line = `${strongText} ${spanText}`;
-                    } else if (spanText) {
-                        line = spanText;
-                    }
-
-                    if (line) {
-                        const splitText = doc.splitTextToSize(line, maxWidth);
-                        doc.text(splitText, margin, y);
-                        y += splitText.length * lineHeight;
-                    }
-                });
-
-                y += lineHeight;
-
-                // Añadir el contenido principal del contrato
-                doc.setFontSize(10);
+                // Divide el contenido completo del contrato en líneas que caben en el ancho de la página
                 const splitContent = doc.splitTextToSize(currentFinalDocTextContent, maxWidth);
-                doc.text(splitContent, margin, y);
-                y += splitContent.length * lineHeight;
+
+                // Itera sobre cada línea y añádela al PDF, manejando los saltos de página
+                splitContent.forEach(line => {
+                    // Si la línea actual excede el final de la página, añade una nueva página
+                    if (y + lineHeight > pageHeight - margin) {
+                        doc.addPage();
+                        y = margin; // Reinicia la posición Y al margen superior de la nueva página
+                    }
+                    doc.text(line, margin, y);
+                    y += lineHeight; // Mueve la posición Y hacia abajo para la siguiente línea
+                });
 
                 doc.save(`${currentGeneratedDocTitle || 'contrato'}.pdf`);
             });
@@ -541,10 +499,8 @@ Firma: __________________________</textarea>
             // Exportar datos como CSV
             exportCsvBtn.addEventListener('click', () => {
                 const docDate = document.getElementById('docDate').value.trim();
-                // Obtiene los valores de los nuevos select de hora y minuto
                 const selectedHour = docHourSelect.value.trim();
                 const selectedMinute = docMinuteSelect.value.trim();
-                // Combina hora y minuto para formar docTime en formato HH:MM
                 const docTime = selectedHour && selectedMinute ? `${selectedHour}:${selectedMinute}` : '';
 
                 const clientName = document.getElementById('clientName').value.trim();
@@ -564,10 +520,8 @@ Firma: __________________________</textarea>
             // Crear Evento en Calendario de Google
             createCalendarEventBtn.addEventListener('click', () => {
                 const docDate = document.getElementById('docDate').value.trim();
-                // Obtiene los valores de los nuevos select de hora y minuto
                 const selectedHour = docHourSelect.value.trim();
                 const selectedMinute = docMinuteSelect.value.trim();
-                // Combina hora y minuto para formar docTime en formato HH:MM
                 const docTime = selectedHour && selectedMinute ? `${selectedHour}:${selectedMinute}` : '';
 
                 const clientName = document.getElementById('clientName').value.trim();
@@ -580,7 +534,6 @@ Firma: __________________________</textarea>
                     return;
                 }
 
-                // Formatear fecha y hora para Google Calendar (YYYYMMDDTHHMMSSZ)
                 const eventDate = new Date(`${docDate}T${docTime}`);
                 const year = eventDate.getFullYear();
                 const month = (eventDate.getMonth() + 1).toString().padStart(2, '0');
@@ -588,7 +541,6 @@ Firma: __________________________</textarea>
                 const hours = eventDate.getHours().toString().padStart(2, '0');
                 const minutes = eventDate.getMinutes().toString().padStart(2, '0');
 
-                // Para simplificar, será un evento de 1 hora
                 const endHours = (eventDate.getHours() + 1).toString().padStart(2, '0');
                 const endMinutes = eventDate.getMinutes().toString().padStart(2, '0');
 
@@ -607,7 +559,6 @@ Firma: __________________________</textarea>
                 window.open(googleCalendarUrl, '_blank');
             });
 
-            // Rellena el campo de fecha con la fecha actual al cargar
             const today = new Date();
             const year = today.getFullYear();
             const month = (today.getMonth() + 1).toString().padStart(2, '0');
