@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contratos Decoglobos</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF CDN for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
@@ -111,54 +113,62 @@
 </head>
 <body>
     <div class="container">
+        <!-- Sección del Formulario -->
         <div class="form-section">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Datos de Contrato</h2>
             <form id="documentForm" class="space-y-6">
                 <div>
-                    <label for="docDate" class="block text-sm font-medium text-gray-700 mb-1">Date:</label>
+                    <label for="docDate" class="block text-sm font-medium text-gray-700 mb-1">Fecha:</label>
                     <input type="date" id="docDate" name="docDate" class="mt-1 block w-full rounded-md">
                 </div>
 
                 <div>
-                    <label for="docTime" class="block text-sm font-medium text-gray-700 mb-1">Time:</label>
-                    <select id="docTime" name="docTime" class="mt-1 block w-full rounded-md">
-                        <option value="">Selecciona la Hora</option>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Hora:</label>
+                    <div class="flex gap-2">
+                        <select id="docHour" name="docHour" class="mt-1 block w-full rounded-md">
+                            <option value="">Hora</option>
+                            <!-- Las opciones se generarán dinámicamente con JavaScript -->
                         </select>
+                        <select id="docMinute" name="docMinute" class="mt-1 block w-full rounded-md">
+                            <option value="">Minutos</option>
+                            <!-- Las opciones se generarán dinámicamente con JavaScript -->
+                        </select>
+                    </div>
                 </div>
 
                 <div>
-                    <label for="clientName" class="block text-sm font-medium text-gray-700 mb-1">Client:</label>
-                    <input type="text" id="clientName" name="clientName" class="mt-1 block w-full rounded-md" placeholder="Client Name">
+                    <label for="clientName" class="block text-sm font-medium text-gray-700 mb-1">Cliente:</label>
+                    <input type="text" id="clientName" name="clientName" class="mt-1 block w-full rounded-md" placeholder="Nombre del Cliente">
                 </div>
 
                 <div>
-                    <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-1">Phone Number:</label>
-                    <input type="text" id="phoneNumber" name="phoneNumber" class="mt-1 block w-full rounded-md" placeholder="e.g., (123) 456-7890">
+                    <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-1">Número de Teléfono:</label>
+                    <input type="text" id="phoneNumber" name="phoneNumber" class="mt-1 block w-full rounded-md" placeholder="Ej: (123) 456-7890">
                 </div>
 
                 <div>
-                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address:</label>
-                    <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md" placeholder="Client Address"></textarea>
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Dirección:</label>
+                    <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md" placeholder="Dirección del Cliente"></textarea>
                 </div>
 
                 <div>
                     <label for="cost" class="block text-sm font-medium text-gray-700 mb-1">Costo Total ($):</label>
-                    <input type="number" id="cost" name="cost" class="mt-1 block w-full rounded-md" placeholder="e.g., 1500.00" step="0.01">
+                    <input type="number" id="cost" name="cost" class="mt-1 block w-full rounded-md" placeholder="Ej: 1500.00" step="0.01">
                 </div>
 
                 <div>
                     <label for="advance" class="block text-sm font-medium text-gray-700 mb-1">Anticipo ($):</label>
-                    <input type="number" id="advance" name="advance" class="mt-1 block w-full rounded-md" placeholder="e.g., 500.00" step="0.01">
+                    <input type="number" id="advance" name="advance" class="mt-1 block w-full rounded-md" placeholder="Ej: 500.00" step="0.01">
                 </div>
 
                 <div>
                     <label for="daysNotice" class="block text-sm font-medium text-gray-700 mb-1">Días de Anticipación para Cambios:</label>
-                    <input type="number" id="daysNotice" name="daysNotice" class="mt-1 block w-full rounded-md" placeholder="e.g., 3" value="3">
+                    <input type="number" id="daysNotice" name="daysNotice" class="mt-1 block w-full rounded-md" placeholder="Ej: 3" value="3">
                 </div>
 
                 <div>
-                    <label for="docContent" class="block text-sm font-medium text-gray-700 mb-1">Document Content:</label>
-                    <textarea id="docContent" name="docContent" rows="15" class="mt-1 block w-full rounded-md" placeholder="Write your document content here. Use placeholders like {{DATE}}, {{TIME}}, {{CLIENT}}, {{PHONE}}, {{ADDRESS}}, {{COST}}, {{ADVANCE}}, {{DAYS_NOTICE}}, {{TODAYDATE}} to insert values from the form.">CONTRATO DE SERVICIO DE DECORACIÓN CON GLOBOS Y RENTA DE
+                    <label for="docContent" class="block text-sm font-medium text-gray-700 mb-1">Contenido del Documento:</label>
+                    <textarea id="docContent" name="docContent" rows="15" class="mt-1 block w-full rounded-md" placeholder="Escribe el contenido de tu documento aquí. Usa marcadores de posición como {{DATE}}, {{TIME}}, {{CLIENT}}, {{PHONE}}, {{ADDRESS}}, {{COST}}, {{ADVANCE}}, {{DAYS_NOTICE}}, {{TODAYDATE}} para insertar valores del formulario.">CONTRATO DE SERVICIO DE DECORACIÓN CON GLOBOS Y RENTA DE
 MOBILIARIO
 Este contrato lo celebran por una parte Decoglobos Juarez, a
 quien llamaremos en adelante “EL PROVEEDOR”, y por la otra parte {{CLIENT}}, {{PHONE}} a quien llamaremos “EL
@@ -226,7 +236,7 @@ situaciones ajenas a su control.
 
 OCTAVA. FOTOS Y PROMOCIÓN
 
-“El PROVEVEEDOR” podrá tomar fotos del montaje final y usarlas en sus redes
+“El PROVEEDOR” podrá tomar fotos del montaje final y usarlas en sus redes
 sociales o materiales publicitarios. “EL CLIENTE” puede pedir que no se
 muestren personas o que no se publique nada, siempre que lo comunique por
 escrito.
@@ -268,14 +278,15 @@ Nombre: {{CLIENT}}
 Firma: __________________________</textarea>
                 </div>
 
-                <button type="submit" class="w-full">Generate Document</button>
+                <button type="submit" class="w-full">Generar Documento</button>
             </form>
         </div>
 
+        <!-- Sección de Vista Previa del Documento -->
         <div class="document-preview-section">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Document Preview</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Vista Previa del Documento</h2>
             <div id="documentOutput" class="space-y-4 text-gray-900">
-                <p class="text-gray-500 italic">Fill the form and click "Generate Document" to see the preview here.</p>
+                <p class="text-gray-500 italic">Rellena el formulario y haz clic en "Generar Documento" para ver la vista previa aquí.</p>
             </div>
             <div class="button-group">
                 <button id="downloadPdfBtn">Descargar Documento (PDF)</button>
@@ -286,13 +297,16 @@ Firma: __________________________</textarea>
     </div>
 
     <script>
-        // Ensure jsPDF is loaded
+        // Asegura que jsPDF esté cargado
         const { jsPDF } = window.jspdf;
 
         document.addEventListener('DOMContentLoaded', () => {
             const documentForm = document.getElementById('documentForm');
             const documentOutput = document.getElementById('documentOutput');
-            const docTimeSelect = document.getElementById('docTime');
+            // Referencias a los nuevos select de hora y minuto
+            const docHourSelect = document.getElementById('docHour');
+            const docMinuteSelect = document.getElementById('docMinute');
+
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             const exportCsvBtn = document.getElementById('exportCsvBtn');
             const createCalendarEventBtn = document.getElementById('createCalendarEventBtn');
@@ -300,64 +314,74 @@ Firma: __________________________</textarea>
             let currentGeneratedDocTitle = '';
             let currentFinalDocTextContent = '';
 
-            // Function to populate the time select dropdown
-            const populateTimeSelect = () => {
+            // Función para poblar los menús desplegables de hora y minuto
+            const populateTimeSelects = () => {
+                // Populate hours (00 to 23)
                 for (let h = 0; h < 24; h++) {
                     const hour = h.toString().padStart(2, '0');
-                    const optionFullHour = document.createElement('option');
-                    optionFullHour.value = `${hour}:00`;
-                    optionFullHour.textContent = `${hour}:00`;
-                    docTimeSelect.appendChild(optionFullHour);
-
-                    const optionHalfHour = document.createElement('option');
-                    optionHalfHour.value = `${hour}:30`;
-                    optionHalfHour.textContent = `${hour}:30`;
-                    docTimeSelect.appendChild(optionHalfHour);
+                    const option = document.createElement('option');
+                    option.value = hour;
+                    option.textContent = hour;
+                    docHourSelect.appendChild(option);
                 }
+
+                // Populate minutes (00 and 30)
+                const minutesOptions = ['00', '30'];
+                minutesOptions.forEach(minute => {
+                    const option = document.createElement('option');
+                    option.value = minute;
+                    option.textContent = minute;
+                    docMinuteSelect.appendChild(option);
+                });
             };
 
-            // Call the function to populate the time select when the DOM is loaded
-            populateTimeSelect();
+            // Llama a la función para poblar los menús desplegables de hora y minuto cuando se carga el DOM
+            populateTimeSelects();
 
-            // Function to format the date for display (e.g., "1 de Julio de 2025")
+            // Función para formatear la fecha para mostrar (ej. "1 de Julio de 2025")
             const formatDateForDisplay = (dateString) => {
                 const options = { year: 'numeric', month: 'long', day: 'numeric' };
                 try {
-                    // Fix: Append 'T00:00:00' to treat the date string as local time
+                    // Corrección: Añade 'T00:00:00' para tratar la cadena de fecha como hora local
                     const date = new Date(`${dateString}T00:00:00`);
                     return date.toLocaleDateString('es-ES', options);
                 } catch (e) {
-                    return dateString; // Return original if invalid date
+                    return dateString; // Devuelve el original si la fecha es inválida
                 }
             };
 
-            // Function to format the date for the document title (e.g., "Jul02")
+            // Función para formatear la fecha para el título del documento (ej. "Jul02")
             const formatDateForTitle = (dateString) => {
                 try {
-                    // Fix: Append 'T00:00:00' to treat the date string as local time
+                    // Corrección: Añade 'T00:00:00' para tratar la cadena de fecha como hora local
                     const date = new Date(`${dateString}T00:00:00`);
-                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]; // Nombres de meses en español para el título
                     const month = monthNames[date.getMonth()];
                     const day = date.getDate().toString().padStart(2, '0');
                     return `${month}${day}`;
                 } catch (e) {
-                    return ''; // Return empty string if invalid date
+                    return ''; // Devuelve una cadena vacía si la fecha es inválida
                 }
             };
 
-            // Function to get today's date formatted for the contract (e.g., "1 de Julio de 2025")
+            // Función para obtener la fecha actual formateada para el contrato (ej. "1 de Julio de 2025")
             const getTodayDateFormatted = () => {
                 const today = new Date();
                 const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                return today.toLocaleDateString('es-ES', options); // Format for Spanish
+                return today.toLocaleDateString('es-ES', options); // Formato para español
             };
 
             documentForm.addEventListener('submit', (event) => {
-                event.preventDefault(); // Prevent default form submission
+                event.preventDefault(); // Previene el envío predeterminado del formulario
 
-                // Get form values
+                // Obtiene los valores del formulario
                 const docDate = document.getElementById('docDate').value.trim();
-                const docTime = docTimeSelect.value.trim();
+                // Obtiene los valores de los nuevos select de hora y minuto
+                const selectedHour = docHourSelect.value.trim();
+                const selectedMinute = docMinuteSelect.value.trim();
+                // Combina hora y minuto para formar docTime en formato HH:MM
+                const docTime = selectedHour && selectedMinute ? `${selectedHour}:${selectedMinute}` : '';
+
                 const clientName = document.getElementById('clientName').value.trim();
                 const phoneNumber = document.getElementById('phoneNumber').value.trim();
                 const address = document.getElementById('address').value.trim();
@@ -366,28 +390,28 @@ Firma: __________________________</textarea>
                 const daysNotice = document.getElementById('daysNotice').value.trim();
                 let docContent = document.getElementById('docContent').value;
 
-                // Clear previous output
+                // Limpia la salida anterior
                 documentOutput.innerHTML = '';
 
-                // Generate the document title based on date and client name
+                // Genera el título del documento basado en la fecha y el nombre del cliente
                 currentGeneratedDocTitle = '';
                 if (docDate && clientName) {
                     currentGeneratedDocTitle = `${formatDateForTitle(docDate)}-${clientName}`;
                 } else if (docDate) {
-                    currentGeneratedDocTitle = `${formatDateForTitle(docDate)}-[Client Name Missing]`;
+                    currentGeneratedDocTitle = `${formatDateForTitle(docDate)}-[Nombre de Cliente Faltante]`;
                 } else if (clientName) {
-                    currentGeneratedDocTitle = `[Date Missing]-${clientName}`;
+                    currentGeneratedDocTitle = `[Fecha Faltante]-${clientName}`;
                 } else {
-                    currentGeneratedDocTitle = 'Untitled Document';
+                    currentGeneratedDocTitle = 'Documento sin Título';
                 }
 
-                // Check if any content is provided
+                // Verifica si se ha proporcionado algún contenido
                 if (!docDate && !docTime && !clientName && !phoneNumber && !address && !cost && !advance && !daysNotice && !docContent) {
-                    documentOutput.innerHTML = '<p class="text-gray-500 italic">No content provided. Please fill the form.</p>';
+                    documentOutput.innerHTML = '<p class="text-gray-500 italic">No se ha proporcionado contenido. Por favor, rellena el formulario.</p>';
                     return;
                 }
 
-                // --- Placeholder Replacement Logic ---
+                // --- Lógica de Reemplazo de Marcadores de Posición ---
                 currentFinalDocTextContent = docContent;
 
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{DATE\}\}/g, formatDateForDisplay(docDate) || '[Fecha]');
@@ -400,11 +424,11 @@ Firma: __________________________</textarea>
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{DAYS_NOTICE\}\}/g, daysNotice || '[Días de Anticipación]');
                 currentFinalDocTextContent = currentFinalDocTextContent.replace(/\{\{TODAYDATE\}\}/g, getTodayDateFormatted());
 
-                // For HTML display, convert newlines to <br>
+                // Para la visualización HTML, convierte los saltos de línea a <br>
                 const formattedHtmlContent = currentFinalDocTextContent.replace(/\n/g, '<br>');
-                // --- End Placeholder Replacement Logic ---
+                // --- Fin de la Lógica de Reemplazo de Marcadores de Posición ---
 
-                // Construct the document preview HTML
+                // Construye el HTML de la vista previa del documento
                 let outputHtml = '';
 
                 outputHtml += `<div class="document-field"><h3 class="text-xl font-semibold text-gray-800">${currentGeneratedDocTitle}</h3></div>`;
@@ -441,9 +465,9 @@ Firma: __________________________</textarea>
                 documentOutput.innerHTML = outputHtml;
             });
 
-            // --- Download Functions ---
+            // --- Funciones de Descarga ---
 
-            // Function to trigger file download
+            // Función para activar la descarga de archivos
             const downloadFile = (filename, content, mimeType) => {
                 const blob = new Blob([content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
@@ -456,10 +480,10 @@ Firma: __________________________</textarea>
                 URL.revokeObjectURL(url);
             };
 
-            // Download as PDF document
+            // Descargar como documento PDF
             downloadPdfBtn.addEventListener('click', () => {
-                if (documentOutput.innerHTML.includes('No content provided')) {
-                    console.error('No document generated yet.');
+                if (documentOutput.innerHTML.includes('No se ha proporcionado contenido')) {
+                    console.error('No se ha generado ningún documento aún.');
                     return;
                 }
 
@@ -469,7 +493,7 @@ Firma: __________________________</textarea>
                 const lineHeight = 7;
                 const maxWidth = doc.internal.pageSize.width - 2 * margin;
 
-                // Add generated title
+                // Añadir título generado
                 doc.setFontSize(16);
                 doc.text(currentGeneratedDocTitle, margin, y);
                 y += lineHeight * 2;
@@ -477,7 +501,7 @@ Firma: __________________________</textarea>
                 doc.setFontSize(10);
                 const previewFields = documentOutput.querySelectorAll('.document-field');
                 previewFields.forEach(field => {
-                    // Skip the main content paragraph, which will be added separately
+                    // Omite el párrafo de contenido principal, que se añadirá por separado
                     if (field.querySelector('p') && field.querySelector('p').innerHTML === currentFinalDocTextContent.replace(/\n/g, '<br>')) {
                         return;
                     }
@@ -504,7 +528,7 @@ Firma: __________________________</textarea>
 
                 y += lineHeight;
 
-                // Add the main contract content
+                // Añadir el contenido principal del contrato
                 doc.setFontSize(10);
                 const splitContent = doc.splitTextToSize(currentFinalDocTextContent, maxWidth);
                 doc.text(splitContent, margin, y);
@@ -514,10 +538,15 @@ Firma: __________________________</textarea>
             });
 
 
-            // Export data as CSV
+            // Exportar datos como CSV
             exportCsvBtn.addEventListener('click', () => {
                 const docDate = document.getElementById('docDate').value.trim();
-                const docTime = docTimeSelect.value.trim();
+                // Obtiene los valores de los nuevos select de hora y minuto
+                const selectedHour = docHourSelect.value.trim();
+                const selectedMinute = docMinuteSelect.value.trim();
+                // Combina hora y minuto para formar docTime en formato HH:MM
+                const docTime = selectedHour && selectedMinute ? `${selectedHour}:${selectedMinute}` : '';
+
                 const clientName = document.getElementById('clientName').value.trim();
                 const phoneNumber = document.getElementById('phoneNumber').value.trim();
                 const address = document.getElementById('address').value.trim().replace(/\n/g, ' ');
@@ -532,10 +561,15 @@ Firma: __________________________</textarea>
                 downloadFile(`${currentGeneratedDocTitle || 'datos_contrato'}.csv`, csvContent, 'text/csv');
             });
 
-            // Create Google Calendar Event
+            // Crear Evento en Calendario de Google
             createCalendarEventBtn.addEventListener('click', () => {
                 const docDate = document.getElementById('docDate').value.trim();
-                const docTime = docTimeSelect.value.trim();
+                // Obtiene los valores de los nuevos select de hora y minuto
+                const selectedHour = docHourSelect.value.trim();
+                const selectedMinute = docMinuteSelect.value.trim();
+                // Combina hora y minuto para formar docTime en formato HH:MM
+                const docTime = selectedHour && selectedMinute ? `${selectedHour}:${selectedMinute}` : '';
+
                 const clientName = document.getElementById('clientName').value.trim();
                 const address = document.getElementById('address').value.trim();
                 const cost = document.getElementById('cost').value.trim();
@@ -546,7 +580,7 @@ Firma: __________________________</textarea>
                     return;
                 }
 
-                // Format date and time for Google Calendar (YYYYMMDDTHHMMSSZ)
+                // Formatear fecha y hora para Google Calendar (YYYYMMDDTHHMMSSZ)
                 const eventDate = new Date(`${docDate}T${docTime}`);
                 const year = eventDate.getFullYear();
                 const month = (eventDate.getMonth() + 1).toString().padStart(2, '0');
@@ -554,7 +588,7 @@ Firma: __________________________</textarea>
                 const hours = eventDate.getHours().toString().padStart(2, '0');
                 const minutes = eventDate.getMinutes().toString().padStart(2, '0');
 
-                // For simplicity, let's make it a 1-hour event
+                // Para simplificar, será un evento de 1 hora
                 const endHours = (eventDate.getHours() + 1).toString().padStart(2, '0');
                 const endMinutes = eventDate.getMinutes().toString().padStart(2, '0');
 
@@ -573,7 +607,7 @@ Firma: __________________________</textarea>
                 window.open(googleCalendarUrl, '_blank');
             });
 
-            // Populate date field with current date on load
+            // Rellena el campo de fecha con la fecha actual al cargar
             const today = new Date();
             const year = today.getFullYear();
             const month = (today.getMonth() + 1).toString().padStart(2, '0');
@@ -583,4 +617,3 @@ Firma: __________________________</textarea>
     </script>
 </body>
 </html>
-```
